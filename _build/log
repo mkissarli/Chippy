@@ -1,0 +1,122 @@
+# dune exec chippy --profile release
+# OCAMLPARAM: unset
+# Shared cache: disabled
+# Workspace root: /Users/malikkissarli/Programming/ocaml/chippy
+# Auto-detected concurrency: 16
+$ /Users/malikkissarli/.opam/4.07.1/bin/ocamlc.opt -config > /var/folders/ky/nv42j5s12fv4zgqphqsww9vc0000gn/T/dune_54688f_output
+# Dune context:
+#  { name = "default"
+#  ; kind = "default"
+#  ; profile = Release
+#  ; merlin = true
+#  ; for_host = None
+#  ; fdo_target_exe = None
+#  ; build_dir = "default"
+#  ; toplevel_path =
+#      Some External "/Users/malikkissarli/.opam/4.07.1/lib/toplevel"
+#  ; ocaml_bin = External "/Users/malikkissarli/.opam/4.07.1/bin"
+#  ; ocaml = Ok External "/Users/malikkissarli/.opam/4.07.1/bin/ocaml"
+#  ; ocamlc = External "/Users/malikkissarli/.opam/4.07.1/bin/ocamlc.opt"
+#  ; ocamlopt =
+#      Ok External "/Users/malikkissarli/.opam/4.07.1/bin/ocamlopt.opt"
+#  ; ocamldep =
+#      Ok External "/Users/malikkissarli/.opam/4.07.1/bin/ocamldep.opt"
+#  ; ocamlmklib =
+#      Ok External "/Users/malikkissarli/.opam/4.07.1/bin/ocamlmklib.opt"
+#  ; env =
+#      map
+#        { "DUNE_OCAML_HARDCODED" : "/Users/malikkissarli/.opam/4.07.1/lib"
+#        ; "DUNE_OCAML_STDLIB" : "/Users/malikkissarli/.opam/4.07.1/lib/ocaml"
+#        ; "DUNE_SOURCEROOT" : "/Users/malikkissarli/Programming/ocaml/chippy"
+#        ; "INSIDE_DUNE" :
+#            "/Users/malikkissarli/Programming/ocaml/chippy/_build/default"
+#        ; "MANPATH" :
+#            "/Users/malikkissarli/Programming/ocaml/chippy/_build/install/default/bin"
+#        ; "OCAMLFIND_IGNORE_DUPS_IN" :
+#            "/Users/malikkissarli/Programming/ocaml/chippy/_build/install/default/lib"
+#        ; "OCAMLPATH" :
+#            "/Users/malikkissarli/Programming/ocaml/chippy/_build/install/default/lib"
+#        ; "OCAMLTOP_INCLUDE_PATH" :
+#            "/Users/malikkissarli/Programming/ocaml/chippy/_build/install/default/lib/toplevel"
+#        ; "OCAML_COLOR" : "always"
+#        ; "OPAMCOLOR" : "always"
+#        }
+#  ; findlib_path = [ External "/Users/malikkissarli/.opam/4.07.1/lib" ]
+#  ; arch_sixtyfour = true
+#  ; natdynlink_supported = true
+#  ; supports_shared_libraries = true
+#  ; ocaml_config =
+#      { version = "4.07.1"
+#      ; standard_library_default =
+#          "/Users/malikkissarli/.opam/4.07.1/lib/ocaml"
+#      ; standard_library = "/Users/malikkissarli/.opam/4.07.1/lib/ocaml"
+#      ; standard_runtime = "/Users/malikkissarli/.opam/4.07.1/bin/ocamlrun"
+#      ; ccomp_type = "cc"
+#      ; c_compiler = "cc"
+#      ; ocamlc_cflags = [ "-O2"; "-fno-strict-aliasing"; "-fwrapv" ]
+#      ; ocamlc_cppflags = [ "-D_FILE_OFFSET_BITS=64"; "-D_REENTRANT" ]
+#      ; ocamlopt_cflags = [ "-O2"; "-fno-strict-aliasing"; "-fwrapv" ]
+#      ; ocamlopt_cppflags = [ "-D_FILE_OFFSET_BITS=64"; "-D_REENTRANT" ]
+#      ; bytecomp_c_compiler =
+#          [ "cc"
+#          ; "-O2"
+#          ; "-fno-strict-aliasing"
+#          ; "-fwrapv"
+#          ; "-D_FILE_OFFSET_BITS=64"
+#          ; "-D_REENTRANT"
+#          ]
+#      ; bytecomp_c_libraries = [ "-lpthread" ]
+#      ; native_c_compiler =
+#          [ "cc"
+#          ; "-O2"
+#          ; "-fno-strict-aliasing"
+#          ; "-fwrapv"
+#          ; "-D_FILE_OFFSET_BITS=64"
+#          ; "-D_REENTRANT"
+#          ]
+#      ; native_c_libraries = []
+#      ; native_pack_linker = [ "ld"; "-r"; "-o" ]
+#      ; cc_profile = [ "-pg" ]
+#      ; architecture = "amd64"
+#      ; model = "default"
+#      ; int_size = 63
+#      ; word_size = 64
+#      ; system = "macosx"
+#      ; asm = [ "clang"; "-arch"; "x86_64"; "-Wno-trigraphs"; "-c" ]
+#      ; asm_cfi_supported = true
+#      ; with_frame_pointers = false
+#      ; ext_exe = ""
+#      ; ext_obj = ".o"
+#      ; ext_asm = ".s"
+#      ; ext_lib = ".a"
+#      ; ext_dll = ".so"
+#      ; os_type = "Unix"
+#      ; default_executable_name = "a.out"
+#      ; systhread_supported = true
+#      ; host = "x86_64-apple-darwin20.6.0"
+#      ; target = "x86_64-apple-darwin20.6.0"
+#      ; profiling = true
+#      ; flambda = false
+#      ; spacetime = false
+#      ; safe_string = false
+#      ; exec_magic_number = "Caml1999X023"
+#      ; cmi_magic_number = "Caml1999I024"
+#      ; cmo_magic_number = "Caml1999O023"
+#      ; cma_magic_number = "Caml1999A023"
+#      ; cmx_magic_number = "Caml1999Y023"
+#      ; cmxa_magic_number = "Caml1999Z023"
+#      ; ast_impl_magic_number = "Caml1999M023"
+#      ; ast_intf_magic_number = "Caml1999N023"
+#      ; cmxs_magic_number = "Caml1999D023"
+#      ; cmt_magic_number = "Caml1999T024"
+#      ; natdynlink_supported = true
+#      ; supports_shared_libraries = true
+#      ; windows_unicode = false
+#      }
+#  }
+$ (cd _build/default && /Users/malikkissarli/.opam/4.07.1/bin/ocamlc.opt -w -40 -w -49 -nopervasives -nostdlib -g -bin-annot -I lib/.chippy.objs/byte -no-alias-deps -o lib/.chippy.objs/byte/chippy.cmo -c -impl lib/chippy.ml-gen)
+$ (cd _build/default && /Users/malikkissarli/.opam/4.07.1/bin/ocamlc.opt -w -40 -g -bin-annot -I bin/.main.eobjs/byte -I /Users/malikkissarli/.opam/4.07.1/lib/base -I /Users/malikkissarli/.opam/4.07.1/lib/base/caml -I /Users/malikkissarli/.opam/4.07.1/lib/base/md5 -I /Users/malikkissarli/.opam/4.07.1/lib/base/shadow_stdlib -I /Users/malikkissarli/.opam/4.07.1/lib/base_bigstring -I /Users/malikkissarli/.opam/4.07.1/lib/base_quickcheck -I /Users/malikkissarli/.opam/4.07.1/lib/bin_prot -I /Users/malikkissarli/.opam/4.07.1/lib/bin_prot/shape -I /Users/malikkissarli/.opam/4.07.1/lib/core -I /Users/malikkissarli/.opam/4.07.1/lib/core_kernel -I /Users/malikkissarli/.opam/4.07.1/lib/core_kernel/base_for_tests -I /Users/malikkissarli/.opam/4.07.1/lib/fieldslib -I /Users/malikkissarli/.opam/4.07.1/lib/jane-street-headers -I /Users/malikkissarli/.opam/4.07.1/lib/ocaml/threads -I /Users/malikkissarli/.opam/4.07.1/lib/parsexp -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_assert/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_bench/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_compare/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_deriving/runtime -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_enumerate/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_expect/collector -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_expect/common -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_expect/config -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_hash/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_inline_test/config -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_inline_test/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_module_timer/runtime -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_sexp_conv/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/result -I /Users/malikkissarli/.opam/4.07.1/lib/sexplib -I /Users/malikkissarli/.opam/4.07.1/lib/sexplib/unix -I /Users/malikkissarli/.opam/4.07.1/lib/sexplib0 -I /Users/malikkissarli/.opam/4.07.1/lib/spawn -I /Users/malikkissarli/.opam/4.07.1/lib/splittable_random -I /Users/malikkissarli/.opam/4.07.1/lib/stdio -I /Users/malikkissarli/.opam/4.07.1/lib/time_now -I /Users/malikkissarli/.opam/4.07.1/lib/typerep -I /Users/malikkissarli/.opam/4.07.1/lib/variantslib -I lib/.chippy.objs/byte -no-alias-deps -o bin/.main.eobjs/byte/dune__exe__Main.cmi -c -intf bin/main.pp.mli)
+$ (cd _build/default && /Users/malikkissarli/.opam/4.07.1/bin/ocamlopt.opt -w -40 -w -49 -nopervasives -nostdlib -g -I lib/.chippy.objs/byte -I lib/.chippy.objs/native -intf-suffix .ml-gen -no-alias-deps -o lib/.chippy.objs/native/chippy.cmx -c -impl lib/chippy.ml-gen)
+$ (cd _build/default && /Users/malikkissarli/.opam/4.07.1/bin/ocamlopt.opt -w -40 -g -a -o lib/chippy.cmxa lib/.chippy.objs/native/chippy.cmx)
+$ (cd _build/default && /Users/malikkissarli/.opam/4.07.1/bin/ocamlopt.opt -w -40 -g -I bin/.main.eobjs/byte -I bin/.main.eobjs/native -I /Users/malikkissarli/.opam/4.07.1/lib/base -I /Users/malikkissarli/.opam/4.07.1/lib/base/caml -I /Users/malikkissarli/.opam/4.07.1/lib/base/md5 -I /Users/malikkissarli/.opam/4.07.1/lib/base/shadow_stdlib -I /Users/malikkissarli/.opam/4.07.1/lib/base_bigstring -I /Users/malikkissarli/.opam/4.07.1/lib/base_quickcheck -I /Users/malikkissarli/.opam/4.07.1/lib/bin_prot -I /Users/malikkissarli/.opam/4.07.1/lib/bin_prot/shape -I /Users/malikkissarli/.opam/4.07.1/lib/core -I /Users/malikkissarli/.opam/4.07.1/lib/core_kernel -I /Users/malikkissarli/.opam/4.07.1/lib/core_kernel/base_for_tests -I /Users/malikkissarli/.opam/4.07.1/lib/fieldslib -I /Users/malikkissarli/.opam/4.07.1/lib/jane-street-headers -I /Users/malikkissarli/.opam/4.07.1/lib/ocaml/threads -I /Users/malikkissarli/.opam/4.07.1/lib/parsexp -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_assert/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_bench/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_compare/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_deriving/runtime -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_enumerate/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_expect/collector -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_expect/common -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_expect/config -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_hash/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_inline_test/config -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_inline_test/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_module_timer/runtime -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_sexp_conv/runtime-lib -I /Users/malikkissarli/.opam/4.07.1/lib/result -I /Users/malikkissarli/.opam/4.07.1/lib/sexplib -I /Users/malikkissarli/.opam/4.07.1/lib/sexplib/unix -I /Users/malikkissarli/.opam/4.07.1/lib/sexplib0 -I /Users/malikkissarli/.opam/4.07.1/lib/spawn -I /Users/malikkissarli/.opam/4.07.1/lib/splittable_random -I /Users/malikkissarli/.opam/4.07.1/lib/stdio -I /Users/malikkissarli/.opam/4.07.1/lib/time_now -I /Users/malikkissarli/.opam/4.07.1/lib/typerep -I /Users/malikkissarli/.opam/4.07.1/lib/variantslib -I lib/.chippy.objs/byte -I lib/.chippy.objs/native -intf-suffix .ml -no-alias-deps -o bin/.main.eobjs/native/dune__exe__Main.cmx -c -impl bin/main.pp.ml)
+$ (cd _build/default && /Users/malikkissarli/.opam/4.07.1/bin/ocamlopt.opt -w -40 -g -o bin/main.exe lib/chippy.cmxa /Users/malikkissarli/.opam/4.07.1/lib/base/caml/caml.cmxa /Users/malikkissarli/.opam/4.07.1/lib/sexplib0/sexplib0.cmxa /Users/malikkissarli/.opam/4.07.1/lib/base/shadow_stdlib/shadow_stdlib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/base/base.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/base /Users/malikkissarli/.opam/4.07.1/lib/ppx_sexp_conv/runtime-lib/ppx_sexp_conv_lib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_inline_test/config/inline_test_config.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_inline_test/runtime-lib/ppx_inline_test_lib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_bench/runtime-lib/ppx_bench_lib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_compare/runtime-lib/ppx_compare_lib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_assert/runtime-lib/ppx_assert_lib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/splittable_random/splittable_random.cmxa /Users/malikkissarli/.opam/4.07.1/lib/fieldslib/fieldslib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_enumerate/runtime-lib/ppx_enumerate_lib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_hash/runtime-lib/ppx_hash_lib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/base_quickcheck/base_quickcheck.cmxa /Users/malikkissarli/.opam/4.07.1/lib/base/md5/md5_lib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ocaml/unix.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/ocaml /Users/malikkissarli/.opam/4.07.1/lib/ocaml/bigarray.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/ocaml /Users/malikkissarli/.opam/4.07.1/lib/variantslib/variantslib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/bin_prot/shape/bin_shape_lib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/bin_prot/bin_prot.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/bin_prot /Users/malikkissarli/.opam/4.07.1/lib/stdio/stdio.cmxa /Users/malikkissarli/.opam/4.07.1/lib/jane-street-headers/jane_street_headers.cmxa /Users/malikkissarli/.opam/4.07.1/lib/time_now/time_now.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/time_now /Users/malikkissarli/.opam/4.07.1/lib/ppx_module_timer/runtime/ppx_module_timer_runtime.cmxa /Users/malikkissarli/.opam/4.07.1/lib/typerep/typerep_lib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_expect/common/expect_test_common.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_expect/config/expect_test_config.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_expect/collector/expect_test_collector.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/ppx_expect/collector /Users/malikkissarli/.opam/4.07.1/lib/base_bigstring/base_bigstring.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/base_bigstring /Users/malikkissarli/.opam/4.07.1/lib/core_kernel/base_for_tests/base_for_tests.cmxa /Users/malikkissarli/.opam/4.07.1/lib/parsexp/parsexp.cmxa /Users/malikkissarli/.opam/4.07.1/lib/sexplib/sexplib.cmxa /Users/malikkissarli/.opam/4.07.1/lib/core_kernel/core_kernel.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/core_kernel /Users/malikkissarli/.opam/4.07.1/lib/sexplib/unix/sexplib_unix.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ocaml/threads/threads.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/ocaml /Users/malikkissarli/.opam/4.07.1/lib/spawn/spawn.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/spawn /Users/malikkissarli/.opam/4.07.1/lib/core/core.cmxa -I /Users/malikkissarli/.opam/4.07.1/lib/core /Users/malikkissarli/.opam/4.07.1/lib/result/result.cmxa /Users/malikkissarli/.opam/4.07.1/lib/ppx_deriving/runtime/ppx_deriving_runtime.cmxa bin/.main.eobjs/native/dune__exe__Main.cmx)
