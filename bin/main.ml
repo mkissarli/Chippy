@@ -1,5 +1,6 @@
 open Core
 open Hex
+(* open Sdl *)
 
 module CPU = struct
   let displayWidth = 64
@@ -59,3 +60,13 @@ let c = CPU.new_cpu("./IBMLogo.ch8")
 let () =
   print_endline "test";
   print_endline (CPU.take_nibble c).ram;
+  Sdl.init [`VIDEO];
+  let width, height = (320, 240) in
+  let _ =
+    Sdlwindow.create2
+      ~title:"Let's try SDL2 with OCaml!"
+      ~x:`undefined ~y:`undefined ~width ~height
+      ~flags:[]
+    in
+    Sdltimer.delay ~ms:2000;
+    Sdl.quit ()

@@ -1,4 +1,4 @@
 (executable
  (public_name chippy)
  (name main)
- (libraries chippy core hex))
+ (libraries chippy core hex sdl2))
