@@ -69,17 +69,28 @@ module CPU = struct
       cpu
 end
 
-let c = CPU.new_cpu("./IBMLogo.ch8")
+module Graphics = struct
+  let create_window width height _title =
+    Sdl.init [`VIDEO];
+    Sdlrender.create_window_and_renderer ~width ~height ~flags:[]
+end
+
+let c = CPU.take_nibble (CPU.new_cpu "./IBMLogo.ch8")
+
 let () =
-  print_endline "test";
-  print_endline (CPU.take_nibble c).ram;
+  print_endline c.ram;
+  let width, height = (640, 480) in
+  Random.self_init ();
   Sdl.init [`VIDEO];
-  let width, height = (320, 240) in
-  let _ =
-    Sdlwindow.create2
-      ~title:"Let's try SDL2 with OCaml!"
-      ~x:`undefined ~y:`undefined ~width ~height
-      ~flags:[]
-    in
-    Sdltimer.delay ~ms:2000;
-    Sdl.quit ()
+  let window, renderer =
+    Sdlrender.create_window_and_renderer ~width ~height ~flags:[]
+  in
+  for i = 1 to 256 do
+    Sdlrender.set_draw_color3 renderer ~b:255 ~g:0 ~r:0 ~a:255;
+    Sdlrender.fill_rect renderer (Sdlrect.make4 ~x:0 ~y:0 ~w:200 ~h:200);
+    Sdlrender.render_present renderer;
+    Sdltimer.delay ~ms:(1000/60);
+  done;
+  Sdltimer.delay ~ms:2000;
+  Sdl.quit ()
+
