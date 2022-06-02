@@ -1,5 +1,4 @@
 (executable
  (public_name chippy)
  (name main)
- (libraries chippy core)
- (preprocess (pps ppx_deriving.show ppx_deriving.ord)))
+ (libraries chippy core hex))
