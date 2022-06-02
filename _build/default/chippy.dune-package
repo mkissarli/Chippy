@@ -1,4 +1,0 @@
-(lang dune 3.2)
-(name chippy)
-(sections (lib .) (bin ../../bin))
-(files (lib (META dune-package opam)) (bin (chippy)))

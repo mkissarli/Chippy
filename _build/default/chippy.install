@@ -1,8 +1,0 @@
-lib: [
-  "_build/install/default/lib/chippy/META"
-  "_build/install/default/lib/chippy/dune-package"
-  "_build/install/default/lib/chippy/opam"
-]
-bin: [
-  "_build/install/default/bin/chippy"
-]
