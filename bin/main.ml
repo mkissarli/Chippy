@@ -26,12 +26,31 @@ module CPU = struct
       pc = 0;
     }
 
-  let take_nibble cpu =
-    if String.length cpu.ram >= 4 then
-      let nibble = String.sub cpu.ram ~pos:0 ~len:4 in
-      print_endline ("Nibble: " ^ nibble);
+  let do_op nibble =
+    print_endline ("Nibble: " ^ nibble);
+    match (String.to_list nibble) with
+    | ['0'; '0'; 'e'; '0'] -> print_endline "CLS"
+    | _ -> print_endline "Error"
 
-      { cpu with ram = String.sub cpu.ram ~pos:4 ~len:((String.length cpu.ram) - 4) }
+  let decode cpu nibble : cpu =
+    do_op nibble;
+    {
+      cpu with
+      ram = String.sub cpu.ram ~pos:4 ~len:((String.length cpu.ram) - 4);
+      pc = cpu.pc + 2
+    }
+
+  let take_nibble cpu : cpu =
+    if String.length cpu.ram >= 4
+    then begin
+        let nibble = String.sub cpu.ram ~pos:0 ~len:4 in
+          (* { *)
+          (*   decode cpu nibble with *)
+          (*     ram = String.sub cpu.ram ~pos:4 ~len:((String.length cpu.ram) - 4); *)
+          (*     pc = cpu.pc + 2; *)
+          (* } *)
+          decode cpu nibble
+      end
     else
       cpu
 end
@@ -39,5 +58,4 @@ end
 let c = CPU.new_cpu("./IBMLogo.ch8")
 let () =
   print_endline "test";
-  print_endline c.ram;
   print_endline (CPU.take_nibble c).ram;
