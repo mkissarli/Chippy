@@ -7,7 +7,7 @@ module CPU = struct
   exception File_not_found of string
 
   let display_width = 64
-  let display_height = 48
+  let display_height = 32
   let pixel_size = 16
   let ram_size = 4096
 
@@ -101,13 +101,13 @@ module CPU = struct
     module OpCode = struct
       let cls cpu = cpu.display <- Array.make_matrix ~dimx:display_width ~dimy:display_height 0
       let jp cpu addr = cpu.pc <- addr
-      let set cpu vx byte = cpu.regs.(vx) <- byte
-      let add cpu vx byte = cpu.regs.(vx) <- cpu.regs.(vx) + byte
+      let ld cpu vx byte = cpu.regs.(vx) <- byte
+      let add cpu vx byte = cpu.regs.(vx) <- (cpu.regs.(vx) + byte) mod 256
       let ld_1 cpu addr = cpu.i <- addr
       let drw cpu vx vy z =
         let
-          x = cpu.regs.(vx) and
-          y = cpu.regs.(vy)
+          x = cpu.regs.(vx) mod display_width and
+          y = cpu.regs.(vy) mod display_height
         in
           cpu.regs.(15) <- 0;
           for i = 0 to z do
@@ -129,7 +129,12 @@ module CPU = struct
                 done;
             else
               ()
-          done;
+          done
+
+      let se cpu vx byte = if cpu.regs.(vx) = byte then cpu.pc <- cpu.pc + 2 else ()
+      let sen cpu vx byte = if cpu.regs.(vx) <> byte then cpu.pc <- cpu.pc + 2 else ()
+      let se_2 cpu vx vy = if cpu.regs.(vx) = cpu.regs.(vy) then  cpu.pc <- cpu.pc + 2 else ()
+      let ld_dt cpu vx = cpu.dt <- cpu.regs.(vx)
     end
 
     let do_op cpu =
@@ -143,9 +148,18 @@ module CPU = struct
       | [|'1';  n1;  n2; n3;|] ->
           (print_endline ("JP " ^ String.of_char_list [n1; n2; n3;]));
           OpCode.jp cpu (hex_to_decimal [n1; n2; n3])
+      | [|'3';   x;  k1; k2;|] ->
+          (print_endline ("SE " ^ String.of_char_list [x; k1; k2]));
+          OpCode.se cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
+      | [|'4';   x;  k1; k2;|] ->
+          (print_endline ("SEN " ^ String.of_char_list [x; k1; k2]));
+          OpCode.sen cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
+      | [|'5';   x;  k;  '0';|] ->
+          (print_endline ("SE2 " ^ String.of_char_list [x; k;]));
+          OpCode.se_2 cpu (hex_to_decimal [x]) (hex_to_decimal [k])
       | [|'6';   x;  k1; k2;|] ->
-          (print_endline ("SET " ^ String.of_char_list [x; k1; k2]));
-          OpCode.set cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
+          (print_endline ("LD " ^ String.of_char_list [x; k1; k2]));
+          OpCode.ld cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
       | [|'7';   x;  k1; k2;|] ->
           (print_endline ("ADD " ^ String.of_char_list [x; k1; k2]));
           OpCode.add cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
@@ -155,6 +169,9 @@ module CPU = struct
       | [|'D';   x;   y;  n;|] ->
           (print_endline ("DRW " ^ String.of_char_list [x; y; n]));
           OpCode.drw cpu (hex_to_decimal [x]) (hex_to_decimal [y]) (hex_to_decimal [n])
+      | [|'F';  vx; '1'; '5';|] ->
+          (print_endline ("LD DT " ^ String.of_char_list [vx]));
+          OpCode.ld_dt cpu (hex_to_decimal [vx])
       | _ -> (print_endline ("Unknown command: " ^ h1 ^ h2))
 
     let next cpu =
@@ -164,7 +181,7 @@ end
 
 module Graphics = struct
   let create_window_and_renderer width height =
-    let title = "Let's try SDL2 with OCaml!" in
+    let title = "CHIP-8" in
       Sdlwindow.create2 ~title
         ~x:`undefined ~y:`undefined ~width ~height
         ~flags:[Sdlwindow.Resizable]
@@ -188,7 +205,7 @@ module Graphics = struct
         if display.(i).(j) <> 0
         then
           let
-            rect = Sdlrect.make4 (i * CPU.pixel_size) (j * CPU.pixel_size) CPU.pixel_size CPU.pixel_size
+            rect = Sdlrect.make4 (i * CPU.pixel_size) (j * CPU.pixel_size) (CPU.pixel_size - 4) (CPU.pixel_size - 4)
           in
             Sdlsurface.fill_rect surf rect color
         else
@@ -211,7 +228,8 @@ let c = CPU.new_cpu
 
 let () =
   Sdl.init [`VIDEO];
-  CPU.load_game c "./IBMLogo.ch8";
+  CPU.load_game c "./chip8-test-rom.ch8";
+  (* CPU.load_game c "./IBMLogo.ch8"; *)
   let width, height = (CPU.display_width * CPU.pixel_size, CPU.display_height * CPU.pixel_size) in
   let window = Graphics.create_window_and_renderer width height
   in
@@ -225,7 +243,7 @@ let () =
     CPU.next c;
     event_loop ();
     Graphics.render window c.display;
-    Sdltimer.delay 1000;
+    Sdltimer.delay (1000/60);
     main_loop ()
   in
   main_loop ()
