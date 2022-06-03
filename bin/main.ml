@@ -50,8 +50,8 @@ module CPU = struct
       dt = 0;
       st = 0;
       i = 0;
-      display = Array.make_matrix ~dimx:display_width ~dimy:display_height 0;
-      pc = 0x200;
+      display = Array.make_matrix ~dimx:display_width ~dimy:display_height 1;
+      pc = 510; (* 0x200 - 0x2 to account for the fact we increment pc before running ops*)
     }
 
   (* let get_byte data i = Bytes.get (Bytes.of_string data) i *)
@@ -71,10 +71,10 @@ module CPU = struct
     Array.of_list  l
 
   let hex_to_decimal ss = int_of_string ("0x" ^ (String.of_char_list ss))
-  let decimal_to_hex i = Printf.sprintf "%X" i
+  let decimal_to_hex i = Printf.sprintf "%02X" i
 
   let hex_to_char_array h =
-    let a = Array.create 4 '0' in
+    let a = Array.create (String.length h) '0' in
     for i = 0 to 3 do
       a.(i) <- Char.of_string (String.sub h i 1);
     done;
@@ -114,13 +114,16 @@ module CPU = struct
             if y + i < display_height
             then
               let sprite = cpu.memory.(cpu.i + i) in
-                for j = 0 to 8 do
+                for j = 0 to 7 do
                   if x + j < display_width
                   then
+                    begin
                     if nth_bit_value sprite j = 1 && cpu.display.(x + j).(y + i) = 1 then
                       cpu.regs.(15) <- 1
                     else
-                      ()
+                      ();
+                    cpu.display.(x + j).(y + i) <- if cpu.display.(x + j).(y + i) = 1 then 0 else 1
+                    end
                   else
                     ()
                 done;
@@ -130,9 +133,11 @@ module CPU = struct
     end
 
     let do_op cpu =
-      let nibble = hex_to_char_array (decimal_to_hex cpu.memory.(cpu.pc)) in
+      let h1 = decimal_to_hex cpu.memory.(cpu.pc) and h2 = decimal_to_hex cpu.memory.(cpu.pc + 1)
+      in
+      let nibble = hex_to_char_array (h1 ^ h2)  in
       match nibble with
-      | [|'0'; '0'; 'e'; '0'|] ->
+      | [|'0'; '0'; 'E'; '0'|] ->
           (print_endline "CLS");
           OpCode.cls cpu
       | [|'1';  n1;  n2; n3;|] ->
@@ -144,16 +149,16 @@ module CPU = struct
       | [|'7';   x;  k1; k2;|] ->
           (print_endline ("ADD " ^ String.of_char_list [x; k1; k2]));
           OpCode.add cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
-      | [|'a';  n1;  n2; n3;|] ->
+      | [|'A';  n1;  n2; n3;|] ->
           (print_endline ("LD1 " ^ String.of_char_list [n1; n2; n3]));
           OpCode.ld_1 cpu (hex_to_decimal [n1; n2; n3])
-      | [|'d';   x;   y;  n;|] ->
+      | [|'D';   x;   y;  n;|] ->
           (print_endline ("DRW " ^ String.of_char_list [x; y; n]));
           OpCode.drw cpu (hex_to_decimal [x]) (hex_to_decimal [y]) (hex_to_decimal [n])
-      | _ -> (print_endline ("Unknown command: " ^ (decimal_to_hex cpu.memory.(cpu.pc))))
+      | _ -> (print_endline ("Unknown command: " ^ h1 ^ h2))
 
     let next cpu =
-      cpu.pc <- cpu.pc + 1;
+      cpu.pc <- cpu.pc + 2;
       do_op cpu
 end
 
@@ -165,11 +170,32 @@ module Graphics = struct
         ~flags:[Sdlwindow.Resizable]
 
   let clear window width height =
-    let surf = Sdlwindow.get_surface window in
-    let color = 0x000000_l in
-    let rect = Sdlrect.make4 0 0 width height in
-    Sdlsurface.fill_rect surf rect color;
-    Sdlwindow.update_surface window;
+    let
+      surf = Sdlwindow.get_surface window and
+      color = 0x000000_l and
+      rect = Sdlrect.make4 0 0 width height
+    in
+      Sdlsurface.fill_rect surf rect color;
+      Sdlwindow.update_surface window
+
+  let render window display =
+    let
+      surf = Sdlwindow.get_surface window and
+      color = 0xFFFFFF_l
+    in
+    for i = 0 to CPU.display_width - 1 do
+      for j = 0 to CPU.display_height - 1 do
+        if display.(i).(j) <> 0
+        then
+          let
+            rect = Sdlrect.make4 (i * CPU.pixel_size) (j * CPU.pixel_size) CPU.pixel_size CPU.pixel_size
+          in
+            Sdlsurface.fill_rect surf rect color
+        else
+          ()
+      done;
+    done;
+    Sdlwindow.update_surface window
 end
 
 module Inputs = struct
@@ -198,7 +224,8 @@ let () =
     Graphics.clear window width height;
     CPU.next c;
     event_loop ();
-    Sdltimer.delay 20;
+    Graphics.render window c.display;
+    Sdltimer.delay 1000;
     main_loop ()
   in
   main_loop ()
