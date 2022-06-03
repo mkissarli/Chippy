@@ -88,6 +88,8 @@ module CPU = struct
       raise (File_not_found file)
     in
 
+    (* Array.iteri (fun i c -> cpu.memory.(i) <- c) font; *)
+
     let rec load i =
     try
       cpu.memory.(i) <- (int_of_char (input_char in_chan));
@@ -102,7 +104,7 @@ module CPU = struct
       let cls cpu = cpu.display <- Array.make_matrix ~dimx:display_width ~dimy:display_height 0
       let jp cpu addr = cpu.pc <- addr
       let ld cpu vx byte = cpu.regs.(vx) <- byte
-      let add cpu vx byte = cpu.regs.(vx) <- (cpu.regs.(vx) + byte) mod 256
+      let add cpu vx byte = cpu.regs.(vx) <- (cpu.regs.(vx) + byte)
       let ld_1 cpu addr = cpu.i <- addr
       let drw cpu vx vy z =
         let
@@ -135,6 +137,25 @@ module CPU = struct
       let sen cpu vx byte = if cpu.regs.(vx) <> byte then cpu.pc <- cpu.pc + 2 else ()
       let se_2 cpu vx vy = if cpu.regs.(vx) = cpu.regs.(vy) then  cpu.pc <- cpu.pc + 2 else ()
       let ld_dt cpu vx = cpu.dt <- cpu.regs.(vx)
+      let ld_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vy)
+      let ld_f cpu vx = cpu.i <- cpu.regs.(vx) * 5
+      let or_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vx) lor cpu.regs.(vy)
+      let and_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vx) land cpu.regs.(vy)
+      let xor_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vx) lxor cpu.regs.(vy)
+      let add_vx_vy cpu vx vy =
+        let total = (cpu.regs.(vx) + cpu.regs.(vy)) in
+          cpu.regs.(vx) <- total land 0xFF;
+          cpu.regs.(0xF) <- if total > 0xFF then 1 else 0;
+          print_int total; print_char ' '; print_int cpu.regs.(vx); print_char ' '; print_int cpu.regs.(0xF); print_endline ""
+      let sub_vx_vy cpu vx vy =
+        let total = cpu.regs.(vy) - cpu.regs.(vx) in
+        if total >= 1 then
+          begin
+            cpu.regs.(0xF) <- 1;
+            cpu.regs.(vx) <- total
+          end
+        else
+          cpu.regs.(0xF) <- 0;
     end
 
     let do_op cpu =
@@ -163,6 +184,24 @@ module CPU = struct
       | [|'7';   x;  k1; k2;|] ->
           (print_endline ("ADD " ^ String.of_char_list [x; k1; k2]));
           OpCode.add cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
+      | [|'8';   x;  y; '0';|] ->
+          (print_endline ("LD_VX_VY " ^ String.of_char_list [x; y]));
+          OpCode.ld_vx_vy cpu (hex_to_decimal [x]) (hex_to_decimal [y;])
+      | [|'8';   x;  y; '1';|] ->
+          (print_endline ("OR_VX_VY " ^ String.of_char_list [x; y]));
+          OpCode.or_vx_vy cpu (hex_to_decimal [x]) (hex_to_decimal [y;])
+      | [|'8';   x;  y; '2';|] ->
+          (print_endline ("AND_VX_VY " ^ String.of_char_list [x; y]));
+          OpCode.and_vx_vy cpu (hex_to_decimal [x]) (hex_to_decimal [y;])
+      | [|'8';   x;  y; '3';|] ->
+          (print_endline ("XOR_VX_VY " ^ String.of_char_list [x; y]));
+          OpCode.xor_vx_vy cpu (hex_to_decimal [x]) (hex_to_decimal [y;])
+      | [|'8';   x;  y; '4';|] ->
+          (print_endline ("ADD_VX_VY " ^ String.of_char_list [x; y]));
+          OpCode.add_vx_vy cpu (hex_to_decimal [x]) (hex_to_decimal [y;])
+      | [|'8';   x;  y; '5';|] ->
+          (print_endline ("SUB_VX_VY " ^ String.of_char_list [x; y]));
+          OpCode.sub_vx_vy cpu (hex_to_decimal [x]) (hex_to_decimal [y;])
       | [|'A';  n1;  n2; n3;|] ->
           (print_endline ("LD1 " ^ String.of_char_list [n1; n2; n3]));
           OpCode.ld_1 cpu (hex_to_decimal [n1; n2; n3])
@@ -172,11 +211,20 @@ module CPU = struct
       | [|'F';  vx; '1'; '5';|] ->
           (print_endline ("LD DT " ^ String.of_char_list [vx]));
           OpCode.ld_dt cpu (hex_to_decimal [vx])
+      | [|'F';  vx; '2'; '9';|] ->
+          (print_endline ("LD F " ^ String.of_char_list [vx]));
+          OpCode.ld_f cpu (hex_to_decimal [vx])
       | _ -> (print_endline ("Unknown command: " ^ h1 ^ h2))
+
+    let modulus_registers cpu =
+      for i = 0 to 15 do
+        cpu.regs.(i) <- cpu.regs.(i) mod 256
+      done
 
     let next cpu =
       cpu.pc <- cpu.pc + 2;
-      do_op cpu
+      do_op cpu;
+      modulus_registers cpu
 end
 
 module Graphics = struct
@@ -239,6 +287,7 @@ let () =
     | None -> ()
   in
   let rec main_loop () =
+    print_string (Printf.sprintf "%04x : " c.pc);
     Graphics.clear window width height;
     CPU.next c;
     event_loop ();
