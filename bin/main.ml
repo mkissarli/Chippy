@@ -74,7 +74,7 @@ module CPU = struct
   let decimal_to_hex i = Printf.sprintf "%X" i
 
   let hex_to_char_array h =
-    let a = List.create 4 '0' in
+    let a = Array.create 4 '0' in
     for i = 0 to 3 do
       a.(i) <- Char.of_string (String.sub h i 1);
     done;
@@ -132,22 +132,22 @@ module CPU = struct
     let do_op cpu =
       let nibble = hex_to_char_array (decimal_to_hex cpu.memory.(cpu.pc)) in
       match nibble with
-      | ['0'; '0'; 'e'; '0'] ->
+      | [|'0'; '0'; 'e'; '0'|] ->
           (print_endline "CLS");
           OpCode.cls cpu
-      | ['1';  n1;  n2; n3;] ->
+      | [|'1';  n1;  n2; n3;|] ->
           (print_endline ("JP " ^ String.of_char_list [n1; n2; n3;]));
           OpCode.jp cpu (hex_to_decimal [n1; n2; n3])
-      | ['6';   x;  k1; k2;] ->
+      | [|'6';   x;  k1; k2;|] ->
           (print_endline ("SET " ^ String.of_char_list [x; k1; k2]));
           OpCode.set cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
-      | ['7';   x;  k1; k2;] ->
+      | [|'7';   x;  k1; k2;|] ->
           (print_endline ("ADD " ^ String.of_char_list [x; k1; k2]));
           OpCode.add cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
-      | ['a';  n1;  n2; n3;] ->
+      | [|'a';  n1;  n2; n3;|] ->
           (print_endline ("LD1 " ^ String.of_char_list [n1; n2; n3]));
           OpCode.ld_1 cpu (hex_to_decimal [n1; n2; n3])
-      | ['d';   x;   y;  n;] ->
+      | [|'d';   x;   y;  n;|] ->
           (print_endline ("DRW " ^ String.of_char_list [x; y; n]));
           OpCode.drw cpu (hex_to_decimal [x]) (hex_to_decimal [y]) (hex_to_decimal [n])
       | _ -> (print_endline ("Unknown command: " ^ (decimal_to_hex cpu.memory.(cpu.pc))))
