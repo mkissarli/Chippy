@@ -50,7 +50,7 @@ module CPU = struct
       dt = 0;
       st = 0;
       i = 0;
-      display = Array.make_matrix ~dimx:display_width ~dimy:display_height 1;
+      display = Array.make_matrix ~dimx:display_width ~dimy:display_height 0;
       pc = 510; (* 0x200 - 0x2 to account for the fact we increment pc before running ops*)
     }
 
@@ -68,7 +68,8 @@ module CPU = struct
       else int_to_bit (i land 1::acc) (i lsr 1)
     in
     let l=int_to_bit [] i in
-    Array.of_list  l
+    let unpadded = Array.of_list  l in
+    Array.append (Array.create ~len:(8 - (Array.length unpadded)) 0) unpadded
 
   let hex_to_decimal ss = int_of_string ("0x" ^ (String.of_char_list ss))
   let decimal_to_hex i = Printf.sprintf "%02X" i
@@ -88,7 +89,7 @@ module CPU = struct
       raise (File_not_found file)
     in
 
-    (* Array.iteri (fun i c -> cpu.memory.(i) <- c) font; *)
+    Array.iteri font ~f:(fun i c -> cpu.memory.(i) <- c);
 
     let rec load i =
     try
@@ -108,28 +109,30 @@ module CPU = struct
       let ld_1 cpu addr = cpu.i <- addr
       let drw cpu vx vy z =
         let
-          x = cpu.regs.(vx) mod display_width and
-          y = cpu.regs.(vy) mod display_height
+          x = cpu.regs.(vx) % display_width and
+          y = cpu.regs.(vy) % display_height
         in
-          cpu.regs.(15) <- 0;
-          for i = 0 to z do
+          cpu.regs.(0xF) <- 0;
+          for i = 0 to z - 1 do
+            let sprite = cpu.memory.(cpu.i + i) in
             if y + i < display_height
             then
-              let sprite = cpu.memory.(cpu.i + i) in
-                for j = 0 to 7 do
-                  if x + j < display_width
-                  then
-                    begin
-                    if nth_bit_value sprite j = 1 && cpu.display.(x + j).(y + i) = 1 then
-                      cpu.regs.(15) <- 1
+              for j = 0 to 7 do
+                if x + j < display_width
+                then
+                  begin
+                    if (int_to_bArr sprite).(j) = 1
+                    then
+                      begin
+                      if cpu.display.(x + j).(y + i) = 1 then cpu.regs.(0xF) <- 1 else ();
+                      cpu.display.(x + j).(y + i) <- if cpu.display.(x + j).(y + i) = 1 then 0 else 1;
+                      end
                     else
                       ();
-                    cpu.display.(x + j).(y + i) <- if cpu.display.(x + j).(y + i) = 1 then 0 else 1
-                    end
-                  else
-                    ()
-                done;
-            else
+                  end
+                else
+                  ()
+              done;
               ()
           done
 
@@ -138,7 +141,7 @@ module CPU = struct
       let se_2 cpu vx vy = if cpu.regs.(vx) = cpu.regs.(vy) then  cpu.pc <- cpu.pc + 2 else ()
       let ld_dt cpu vx = cpu.dt <- cpu.regs.(vx)
       let ld_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vy)
-      let ld_f cpu vx = cpu.i <- cpu.regs.(vx) * 5
+      let ld_f cpu vx = cpu.i <- cpu.regs.(vx) * 5; print_endline ((Int.to_string cpu.regs.(vx)) ^ ":" ^ (Int.to_string cpu.i))
       let or_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vx) lor cpu.regs.(vy)
       let and_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vx) land cpu.regs.(vy)
       let xor_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vx) lxor cpu.regs.(vy)
@@ -163,8 +166,8 @@ module CPU = struct
         cpu.regs.(vx) <- cpu.regs.(vx) lsr 1
 
       let shl cpu vx =
-        cpu.regs.(0xF) <- cpu.regs.(vx) land 0b1;
-        cpu.regs.(vx) <- cpu.regs.(vx) lsl 1
+        cpu.regs.(0xF) <- (cpu.regs.(vx) lsr 7) land 0b1;
+        cpu.regs.(vx) <- (cpu.regs.(vx) lsl 1) land 0xFF
 
       let subn cpu vx vy =
         let total = cpu.regs.(vy) - cpu.regs.(vx) in
@@ -175,7 +178,19 @@ module CPU = struct
           end
         else
           cpu.regs.(0xF) <- 0;
-        cpu.regs.(vx) <- total % 256;
+        cpu.regs.(vx) <- total % 256
+
+        let sne cpu vx vy = if cpu.regs.(vx) <> cpu.regs.(vy) then cpu.pc <- cpu.pc + 2 else ()
+        let jp_v0 cpu addr = cpu.pc <- addr + cpu.regs.(0x0)
+        let rnd cpu vx byte = cpu.regs.(vx) <- (Random.int 256) land byte
+        let ld_vx_dt cpu vx = cpu.regs.(vx) <- cpu.dt
+        let ld_b_vx cpu vx =
+          let decimal_string = Printf.sprintf "%03d" cpu.regs.(vx) in
+          String.iteri decimal_string (fun i x -> cpu.memory.(cpu.i + i) <- (Char.to_int x))
+        let ld_vx_i cpu vx =
+          for i = 0 to vx do
+            cpu.regs.(i) <- cpu.memory.(cpu.i + i)
+          done
     end
 
     let do_op cpu =
@@ -223,26 +238,44 @@ module CPU = struct
           (print_endline ("SUB_VX_VY " ^ String.of_char_list [x; y]));
           OpCode.sub_vx_vy cpu (hex_to_decimal [x]) (hex_to_decimal [y;])
       | [|'8';   x;  y; '6';|] ->
-          (print_endline ("SHR " ^ String.of_char_list [x; y]));
+          (print_endline ("SHR " ^ String.of_char_list [x]));
           OpCode.shr cpu (hex_to_decimal [x])
       | [|'8';   x;  y; '7';|] ->
           (print_endline ("SUBN " ^ String.of_char_list [x; y]));
           OpCode.subn cpu (hex_to_decimal [x]) (hex_to_decimal [y;])
       | [|'8';   x;  y; 'E';|] ->
-          (print_endline ("SHL " ^ String.of_char_list [x; y]));
+          (print_endline ("SHL " ^ String.of_char_list [x]));
           OpCode.shl cpu (hex_to_decimal [x])
+      | [|'9';   x;  y; '0';|] ->
+          (print_endline ("SNE " ^ String.of_char_list [x; y]));
+          OpCode.sne cpu (hex_to_decimal [x]) (hex_to_decimal [y])
       | [|'A';  n1;  n2; n3;|] ->
           (print_endline ("LD1 " ^ String.of_char_list [n1; n2; n3]));
           OpCode.ld_1 cpu (hex_to_decimal [n1; n2; n3])
+      | [|'B';  n1;  n2; n3;|] ->
+          (print_endline ("JP_V0 " ^ String.of_char_list [n1; n2; n3;]));
+          OpCode.jp_v0 cpu (hex_to_decimal [n1; n2; n3])
+      | [|'C';   x;  k1; k2;|] ->
+          (print_endline ("RND " ^ String.of_char_list [x; k1; k2]));
+          OpCode.rnd cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
       | [|'D';   x;   y;  n;|] ->
           (print_endline ("DRW " ^ String.of_char_list [x; y; n]));
           OpCode.drw cpu (hex_to_decimal [x]) (hex_to_decimal [y]) (hex_to_decimal [n])
+      | [|'F';  vx; '0'; '7';|] ->
+          (print_endline ("LD_VX_DT " ^ String.of_char_list [vx]));
+          OpCode.ld_vx_dt cpu (hex_to_decimal [vx])
       | [|'F';  vx; '1'; '5';|] ->
           (print_endline ("LD DT " ^ String.of_char_list [vx]));
           OpCode.ld_dt cpu (hex_to_decimal [vx])
       | [|'F';  vx; '2'; '9';|] ->
           (print_endline ("LD F " ^ String.of_char_list [vx]));
           OpCode.ld_f cpu (hex_to_decimal [vx])
+      | [|'F';  vx; '3'; '3';|] ->
+          (print_endline ("LD_B_VX " ^ String.of_char_list [vx]));
+          OpCode.ld_b_vx cpu (hex_to_decimal [vx])
+      | [|'F';  vx; '6'; '5';|] ->
+          (print_endline ("LD_VX_I " ^ String.of_char_list [vx]));
+          OpCode.ld_vx_i cpu (hex_to_decimal [vx])
       | _ -> (print_endline ("Unknown command: " ^ h1 ^ h2))
 
     let modulus_registers cpu =
@@ -321,6 +354,10 @@ let () =
     CPU.next c;
     event_loop ();
     Graphics.render window c.display;
+
+    (* This needs to actually be tied to 60Hz.. *)
+    c.dt <- c.dt - 1;
+    c.st <- c.st - 1;
     Sdltimer.delay (1000/60);
     main_loop ()
   in
