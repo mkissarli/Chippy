@@ -139,9 +139,9 @@ module CPU = struct
       let se cpu vx byte = if cpu.regs.(vx) = byte then cpu.pc <- cpu.pc + 2 else ()
       let sen cpu vx byte = if cpu.regs.(vx) <> byte then cpu.pc <- cpu.pc + 2 else ()
       let se_2 cpu vx vy = if cpu.regs.(vx) = cpu.regs.(vy) then  cpu.pc <- cpu.pc + 2 else ()
-      let ld_dt cpu vx = cpu.dt <- cpu.regs.(vx); print_endline ("****" ^ (decimal_to_hex cpu.dt))
+      let ld_dt cpu vx = cpu.dt <- cpu.regs.(vx)
       let ld_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vy)
-      let ld_f cpu vx = cpu.i <- cpu.regs.(vx) * 5; print_endline ((Int.to_string cpu.regs.(vx)) ^ ":" ^ (Int.to_string cpu.i))
+      let ld_f cpu vx = cpu.i <- cpu.regs.(vx) * 5
       let or_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vx) lor cpu.regs.(vy)
       let and_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vx) land cpu.regs.(vy)
       let xor_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vx) lxor cpu.regs.(vy)
@@ -171,7 +171,6 @@ module CPU = struct
 
       let subn cpu vx vy =
         let total = cpu.regs.(vy) - cpu.regs.(vx) in
-        print_endline (Int.to_string(total) ^ ":" ^ Int.to_string(cpu.regs.(vy)) ^ ":" ^ Int.to_string(cpu.regs.(vx)));
         if total >= 1 then
           begin
             cpu.regs.(0xF) <- 1;
@@ -189,9 +188,15 @@ module CPU = struct
         String.iteri decimal_string (fun i x -> cpu.memory.(cpu.i + i) <- (Int.of_string (String.of_char x)))
       let ld_vx_i cpu vx =
         for i = 0 to vx do
-          print_endline ("Vx " ^ (decimal_to_hex i) ^ " = " ^ (decimal_to_hex cpu.memory.(cpu.i + i)));
-          cpu.regs.(i) <- cpu.memory.(cpu.i + i)
+          cpu.regs.(i) <- cpu.memory.(cpu.i + i);
+          (* print_endline("VX " ^ (decimal_to_hex i) ^ ": " ^ (decimal_to_hex cpu.regs.(i))) *)
         done
+
+      let ld_i_vx cpu vx =
+        for i = 0 to vx do
+          cpu.memory.(cpu.i + i) <- cpu.regs.(i)
+        done
+      let add_i_vx cpu vx = cpu.i <- cpu.i + cpu.regs.(vx)
     end
 
     let do_op cpu =
@@ -268,12 +273,18 @@ module CPU = struct
       | [|'F';  vx; '1'; '5';|] ->
           (print_endline ("LD DT " ^ String.of_char_list [vx]));
           OpCode.ld_dt cpu (hex_to_decimal [vx])
+      | [|'F';  vx; '1'; 'E';|] ->
+          (print_endline ("ADD_I_VX " ^ String.of_char_list [vx]));
+          OpCode.add_i_vx cpu (hex_to_decimal [vx])
       | [|'F';  vx; '2'; '9';|] ->
           (print_endline ("LD F " ^ String.of_char_list [vx]));
           OpCode.ld_f cpu (hex_to_decimal [vx])
       | [|'F';  vx; '3'; '3';|] ->
           (print_endline ("LD_B_VX " ^ String.of_char_list [vx]));
           OpCode.ld_b_vx cpu (hex_to_decimal [vx])
+      | [|'F';  vx; '5'; '5';|] ->
+          (print_endline ("LD_I_VX " ^ String.of_char_list [vx]));
+          OpCode.ld_i_vx cpu (hex_to_decimal [vx])
       | [|'F';  vx; '6'; '5';|] ->
           (print_endline ("LD_VX_I " ^ String.of_char_list [vx]));
           OpCode.ld_vx_i cpu (hex_to_decimal [vx])
@@ -345,8 +356,8 @@ let seconds_to_nanoseconds x = x * 1_000_000_000
 
 let () =
   Sdl.init [`VIDEO];
-  CPU.load_game c "./chip8-test-rom.ch8";
-  (* CPU.load_game c "./IBMLogo.ch8"; *)
+  (* CPU.load_game c "./chip8-test-rom.ch8"; *)
+  CPU.load_game c "./IBMLogo.ch8";
   let width, height = (CPU.display_width * CPU.pixel_size, CPU.display_height * CPU.pixel_size) in
   let window = Graphics.create_window_and_renderer width height
   in
