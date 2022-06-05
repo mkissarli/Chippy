@@ -180,17 +180,18 @@ module CPU = struct
           cpu.regs.(0xF) <- 0;
         cpu.regs.(vx) <- total % 256
 
-        let sne cpu vx vy = if cpu.regs.(vx) <> cpu.regs.(vy) then cpu.pc <- cpu.pc + 2 else ()
-        let jp_v0 cpu addr = cpu.pc <- addr + cpu.regs.(0x0)
-        let rnd cpu vx byte = cpu.regs.(vx) <- (Random.int 256) land byte
-        let ld_vx_dt cpu vx = print_endline (decimal_to_hex cpu.dt); cpu.regs.(vx) <- cpu.dt
-        let ld_b_vx cpu vx =
-          let decimal_string = Printf.sprintf "%03d" cpu.regs.(vx) in
-          String.iteri decimal_string (fun i x -> cpu.memory.(cpu.i + i) <- (Char.to_int x))
-        let ld_vx_i cpu vx =
-          for i = 0 to vx do
-            cpu.regs.(i) <- cpu.memory.(cpu.i + i)
-          done
+      let sne cpu vx vy = if cpu.regs.(vx) <> cpu.regs.(vy) then cpu.pc <- cpu.pc + 2 else ()
+      let jp_v0 cpu addr = cpu.pc <- addr + cpu.regs.(0x0)
+      let rnd cpu vx byte = cpu.regs.(vx) <- (Random.int 256) land byte
+      let ld_vx_dt cpu vx = print_endline (decimal_to_hex cpu.dt); cpu.regs.(vx) <- cpu.dt
+      let ld_b_vx cpu vx =
+        let decimal_string = Printf.sprintf "%03d" cpu.regs.(vx) in
+        String.iteri decimal_string (fun i x -> cpu.memory.(cpu.i + i) <- (Int.of_string (String.of_char x)))
+      let ld_vx_i cpu vx =
+        for i = 0 to vx do
+          print_endline ("Vx " ^ (decimal_to_hex i) ^ " = " ^ (decimal_to_hex cpu.memory.(cpu.i + i)));
+          cpu.regs.(i) <- cpu.memory.(cpu.i + i)
+        done
     end
 
     let do_op cpu =
