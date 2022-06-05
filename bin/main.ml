@@ -103,7 +103,7 @@ module CPU = struct
     module OpCode = struct
       let cls cpu = cpu.display <- Array.make_matrix ~dimx:display_width ~dimy:display_height 0
       let jp cpu addr = cpu.pc <- addr
-      let ld cpu vx byte = print_endline ((decimal_to_hex vx) ^ ":" ^ (decimal_to_hex byte)); cpu.regs.(vx) <- byte; print_endline (decimal_to_hex cpu.regs.(vx))
+      let ld cpu vx byte = cpu.regs.(vx) <- byte
       let add cpu vx byte = cpu.regs.(vx) <- (cpu.regs.(vx) + byte)
       let ld_1 cpu addr = cpu.i <- addr
       let drw cpu vx vy z =
@@ -151,11 +151,31 @@ module CPU = struct
         if total >= 1 then
           begin
             cpu.regs.(0xF) <- 1;
-            cpu.regs.(vx) <- total
           end
         else
-          cpu.regs.(0xF) <- 0
+          cpu.regs.(0xF) <- 0;
+        cpu.regs.(vx) <- total % 256
 
+      (* These next two vary per implementation... should make this configurable *)
+      (* Little endian? *)
+      let shr cpu vx =
+        cpu.regs.(0xF) <- cpu.regs.(vx) land 0b1;
+        cpu.regs.(vx) <- cpu.regs.(vx) lsr 1
+
+      let shl cpu vx =
+        cpu.regs.(0xF) <- cpu.regs.(vx) land 0b1;
+        cpu.regs.(vx) <- cpu.regs.(vx) lsl 1
+
+      let subn cpu vx vy =
+        let total = cpu.regs.(vy) - cpu.regs.(vx) in
+        print_endline (Int.to_string(total) ^ ":" ^ Int.to_string(cpu.regs.(vy)) ^ ":" ^ Int.to_string(cpu.regs.(vx)));
+        if total >= 1 then
+          begin
+            cpu.regs.(0xF) <- 1;
+          end
+        else
+          cpu.regs.(0xF) <- 0;
+        cpu.regs.(vx) <- total % 256;
     end
 
     let do_op cpu =
@@ -202,6 +222,15 @@ module CPU = struct
       | [|'8';   x;  y; '5';|] ->
           (print_endline ("SUB_VX_VY " ^ String.of_char_list [x; y]));
           OpCode.sub_vx_vy cpu (hex_to_decimal [x]) (hex_to_decimal [y;])
+      | [|'8';   x;  y; '6';|] ->
+          (print_endline ("SHR " ^ String.of_char_list [x; y]));
+          OpCode.shr cpu (hex_to_decimal [x])
+      | [|'8';   x;  y; '7';|] ->
+          (print_endline ("SUBN " ^ String.of_char_list [x; y]));
+          OpCode.subn cpu (hex_to_decimal [x]) (hex_to_decimal [y;])
+      | [|'8';   x;  y; 'E';|] ->
+          (print_endline ("SHL " ^ String.of_char_list [x; y]));
+          OpCode.shl cpu (hex_to_decimal [x])
       | [|'A';  n1;  n2; n3;|] ->
           (print_endline ("LD1 " ^ String.of_char_list [n1; n2; n3]));
           OpCode.ld_1 cpu (hex_to_decimal [n1; n2; n3])
