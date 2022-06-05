@@ -139,7 +139,7 @@ module CPU = struct
       let se cpu vx byte = if cpu.regs.(vx) = byte then cpu.pc <- cpu.pc + 2 else ()
       let sen cpu vx byte = if cpu.regs.(vx) <> byte then cpu.pc <- cpu.pc + 2 else ()
       let se_2 cpu vx vy = if cpu.regs.(vx) = cpu.regs.(vy) then  cpu.pc <- cpu.pc + 2 else ()
-      let ld_dt cpu vx = cpu.dt <- cpu.regs.(vx)
+      let ld_dt cpu vx = cpu.dt <- cpu.regs.(vx); print_endline ("****" ^ (decimal_to_hex cpu.dt))
       let ld_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vy)
       let ld_f cpu vx = cpu.i <- cpu.regs.(vx) * 5; print_endline ((Int.to_string cpu.regs.(vx)) ^ ":" ^ (Int.to_string cpu.i))
       let or_vx_vy cpu vx vy = cpu.regs.(vx) <- cpu.regs.(vx) lor cpu.regs.(vy)
@@ -183,7 +183,7 @@ module CPU = struct
         let sne cpu vx vy = if cpu.regs.(vx) <> cpu.regs.(vy) then cpu.pc <- cpu.pc + 2 else ()
         let jp_v0 cpu addr = cpu.pc <- addr + cpu.regs.(0x0)
         let rnd cpu vx byte = cpu.regs.(vx) <- (Random.int 256) land byte
-        let ld_vx_dt cpu vx = cpu.regs.(vx) <- cpu.dt
+        let ld_vx_dt cpu vx = print_endline (decimal_to_hex cpu.dt); cpu.regs.(vx) <- cpu.dt
         let ld_b_vx cpu vx =
           let decimal_string = Printf.sprintf "%03d" cpu.regs.(vx) in
           String.iteri decimal_string (fun i x -> cpu.memory.(cpu.i + i) <- (Char.to_int x))
@@ -286,7 +286,7 @@ module CPU = struct
     let next cpu =
       cpu.pc <- cpu.pc + 2;
       do_op cpu;
-      modulus_registers cpu
+      modulus_registers cpu;
 end
 
 module Graphics = struct
@@ -335,6 +335,12 @@ module Inputs = struct
 end
 
 let c = CPU.new_cpu
+let time_in_int = fun _ -> Time_ns.to_int_ns_since_epoch (Time_ns.now ())
+type timer = { mutable delay: int; mutable dt: int; }
+let timers = { delay = 0; dt = 0 }
+let last_time = { delay = time_in_int(); dt = time_in_int() }
+let hz_to_nanosecs x = x * 1000000000
+let seconds_to_nanoseconds x = x * 1_000_000_000
 
 let () =
   Sdl.init [`VIDEO];
@@ -348,18 +354,34 @@ let () =
     | Some ev -> Inputs.proc_events ev; event_loop ()
     | None -> ()
   in
-  let rec main_loop () =
+  let rec op() =
     print_string (Printf.sprintf "%04x : " c.pc);
     Graphics.clear window width height;
     CPU.next c;
     event_loop ();
     Graphics.render window c.display;
-
-    (* This needs to actually be tied to 60Hz.. *)
-    c.dt <- c.dt - 1;
-    c.st <- c.st - 1;
-    Sdltimer.delay (1000/60);
-    main_loop ()
+  in
+  let rec main_loop () =
+    timers.delay <- (time_in_int() - last_time.delay);
+    timers.dt <- (time_in_int() - last_time.dt);
+    (* print_endline (Int.to_string timers.dt); *)
+    if timers.delay > (seconds_to_nanoseconds 1)/60 then
+      begin
+        last_time.delay <- time_in_int();
+        timers.delay <- 0;
+        if c.dt > 0 then c.dt <- c.dt - 1 else ();
+        if c.st > 0 then c.st <- c.st - 1 else ()
+      end
+    else
+      ();
+    if timers.dt > (seconds_to_nanoseconds 1) / 10 then
+      begin
+        last_time.dt <- time_in_int();
+        timers.dt <- 0;
+        op ();
+      end
+    else
+      ();
+    main_loop ();
   in
   main_loop ()
-  (* Sdltimer.delay 3000 *)
