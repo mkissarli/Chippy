@@ -103,7 +103,7 @@ module CPU = struct
     module OpCode = struct
       let cls cpu = cpu.display <- Array.make_matrix ~dimx:display_width ~dimy:display_height 0
       let jp cpu addr = cpu.pc <- addr
-      let ld cpu vx byte = cpu.regs.(vx) <- byte
+      let ld cpu vx byte = print_endline ((decimal_to_hex vx) ^ ":" ^ (decimal_to_hex byte)); cpu.regs.(vx) <- byte; print_endline (decimal_to_hex cpu.regs.(vx))
       let add cpu vx byte = cpu.regs.(vx) <- (cpu.regs.(vx) + byte)
       let ld_1 cpu addr = cpu.i <- addr
       let drw cpu vx vy z =
@@ -145,17 +145,17 @@ module CPU = struct
       let add_vx_vy cpu vx vy =
         let total = (cpu.regs.(vx) + cpu.regs.(vy)) in
           cpu.regs.(vx) <- total land 0xFF;
-          cpu.regs.(0xF) <- if total > 0xFF then 1 else 0;
-          print_int total; print_char ' '; print_int cpu.regs.(vx); print_char ' '; print_int cpu.regs.(0xF); print_endline ""
+          cpu.regs.(0xF) <- if total > 0xFF then 1 else 0
       let sub_vx_vy cpu vx vy =
-        let total = cpu.regs.(vy) - cpu.regs.(vx) in
+        let total = cpu.regs.(vx) - cpu.regs.(vy) in
         if total >= 1 then
           begin
             cpu.regs.(0xF) <- 1;
             cpu.regs.(vx) <- total
           end
         else
-          cpu.regs.(0xF) <- 0;
+          cpu.regs.(0xF) <- 0
+
     end
 
     let do_op cpu =
@@ -171,7 +171,7 @@ module CPU = struct
           OpCode.jp cpu (hex_to_decimal [n1; n2; n3])
       | [|'3';   x;  k1; k2;|] ->
           (print_endline ("SE " ^ String.of_char_list [x; k1; k2]));
-          OpCode.se cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
+          OpCode.se cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;]);
       | [|'4';   x;  k1; k2;|] ->
           (print_endline ("SEN " ^ String.of_char_list [x; k1; k2]));
           OpCode.sen cpu (hex_to_decimal [x]) (hex_to_decimal [k1; k2;])
