@@ -12,6 +12,7 @@ module CPU = struct
   let ram_size = 4096
 
   type display = int array array
+  type optionalKeycode = Sdlkeycode.t
 
   type cpu = {
     mutable memory: int array;
@@ -21,6 +22,7 @@ module CPU = struct
     mutable i: int;
     mutable display: display;
     mutable pc: int;
+    mutable last_key: optionalKeycode;
   }
 
   let font =
@@ -43,6 +45,26 @@ module CPU = struct
       0xF0; 0x80; 0xF0; 0x80; 0x80  (* F *)
     |]
 
+  let keycode_to_int key =
+    match key with
+      | Sdlkeycode.Num1 -> 0x00
+      | Sdlkeycode.Num2 -> 0x01
+      | Sdlkeycode.Num3 -> 0x02
+      | Sdlkeycode.Num4 -> 0x03
+      | Sdlkeycode.Q -> 0x04
+      | Sdlkeycode.W -> 0x05
+      | Sdlkeycode.E -> 0x06
+      | Sdlkeycode.R -> 0x07
+      | Sdlkeycode.A -> 0x08
+      | Sdlkeycode.S -> 0x09
+      | Sdlkeycode.D -> 0x0A
+      | Sdlkeycode.F -> 0x0B
+      | Sdlkeycode.Z -> 0x0C
+      | Sdlkeycode.X -> 0x0D
+      | Sdlkeycode.C -> 0x0E
+      | Sdlkeycode.V -> 0x0F
+      | _ -> 0xFFF
+
   let new_cpu : cpu =
     {
       memory = Array.create ~len:ram_size 0;
@@ -52,13 +74,8 @@ module CPU = struct
       i = 0;
       display = Array.make_matrix ~dimx:display_width ~dimy:display_height 0;
       pc = 510; (* 0x200 - 0x2 to account for the fact we increment pc before running ops*)
+      last_key = Sdlkeycode.Unknown;
     }
-
-  (* let get_byte data i = Bytes.get (Bytes.of_string data) i *)
-  (* let get_hex data i = Hex.of_char (get_byte data i) *)
-  (* let get_hex_byte data i = *)
-  (*   let first = (get_hex data ((i - 1) * 2)) and second = (get_hex data ((i - 1) * 2 + 1)) in *)
-  (*   [Tuple2.get1 first; Tuple2.get2 first; Tuple2.get1 second; Tuple2.get2 second] *)
 
   let nth_bit x n = x land (1 lsl n) <> 0
   let nth_bit_value x n = if nth_bit x n then 1 else 0
@@ -197,6 +214,8 @@ module CPU = struct
           cpu.memory.(cpu.i + i) <- cpu.regs.(i)
         done
       let add_i_vx cpu vx = cpu.i <- cpu.i + cpu.regs.(vx)
+      let skp cpu vx = if cpu.regs.(vx) = keycode_to_int cpu.last_key then cpu.pc <- cpu.pc + 2
+      let sknp cpu vx = if cpu.regs.(vx) <> keycode_to_int cpu.last_key then cpu.pc <- cpu.pc + 2
     end
 
     let do_op cpu =
@@ -267,6 +286,12 @@ module CPU = struct
       | [|'D';   x;   y;  n;|] ->
           (print_endline ("DRW " ^ String.of_char_list [x; y; n]));
           OpCode.drw cpu (hex_to_decimal [x]) (hex_to_decimal [y]) (hex_to_decimal [n])
+      | [|'E';  vx; '9'; 'E';|] ->
+          (print_endline ("SKP " ^ String.of_char_list [vx]));
+          OpCode.skp cpu (hex_to_decimal [vx])
+      | [|'E';  vx; 'A'; '1';|] ->
+          (print_endline ("SKNP " ^ String.of_char_list [vx]));
+          OpCode.sknp cpu (hex_to_decimal [vx])
       | [|'F';  vx; '0'; '7';|] ->
           (print_endline ("LD_VX_DT " ^ String.of_char_list [vx]));
           OpCode.ld_vx_dt cpu (hex_to_decimal [vx])
@@ -338,12 +363,12 @@ module Graphics = struct
 end
 
 module Inputs = struct
-  let proc_events = function
+  let proc_events (cpu:CPU.cpu) = function
     | Sdlevent.KeyDown { scancode = Sdlscancode.ESCAPE } ->
       print_endline "Goodbye";
       exit 0
-    | e -> ()
-      (* print_endline (Sdlevent.to_string e) *)
+    | Sdlevent.KeyDown e -> cpu.last_key <- e.keycode
+    | e -> cpu.last_key <- Sdlkeycode.Unknown
 end
 
 let c = CPU.new_cpu
@@ -356,14 +381,14 @@ let seconds_to_nanoseconds x = x * 1_000_000_000
 
 let () =
   Sdl.init [`VIDEO];
-  (* CPU.load_game c "./chip8-test-rom.ch8"; *)
-  CPU.load_game c "./IBMLogo.ch8";
+  CPU.load_game c "./chip8-test-rom.ch8";
+  (* CPU.load_game c "./IBMLogo.ch8"; *)
   let width, height = (CPU.display_width * CPU.pixel_size, CPU.display_height * CPU.pixel_size) in
   let window = Graphics.create_window_and_renderer width height
   in
   let rec event_loop () =
     match Sdlevent.poll_event () with
-    | Some ev -> Inputs.proc_events ev; event_loop ()
+    | Some ev -> Inputs.proc_events c ev; event_loop ()
     | None -> ()
   in
   let rec op() =
